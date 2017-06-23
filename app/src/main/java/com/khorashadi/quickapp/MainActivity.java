@@ -9,11 +9,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.jakewharton.rxbinding2.view.RxView;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 
 public class MainActivity extends AppCompatActivity {
@@ -22,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private Button button2;
     private TextView textView;
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
+    private ProgressBar spinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        spinner = (ProgressBar)findViewById(R.id.progressBar1);
+        spinner.setVisibility(View.GONE);
         button1 = (Button) findViewById(R.id.button1);
         button2 = (Button) findViewById(R.id.button2);
         textView = (TextView) findViewById(R.id.msg);
@@ -50,6 +56,15 @@ public class MainActivity extends AppCompatActivity {
         compositeDisposable.add(RxView.clicks(button1).subscribe(new Consumer<Object>() {
             @Override
             public void accept(Object o) throws Exception {
+                final StatKeeper statKeeper = new StatKeeper();
+                spinner.setVisibility(View.VISIBLE);
+                statKeeper.runExperiment(1000).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action() {
+                    @Override
+                    public void run() throws Exception {
+                        textView.setText(statKeeper.toString());
+                        spinner.setVisibility(View.GONE);
+                    }
+                });
                 Snackbar.make(findViewById(android.R.id.content), "Have button 1 do something", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
